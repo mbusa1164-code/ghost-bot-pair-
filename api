@@ -1,0 +1,73 @@
+// 📁 api/pair.js - GHOST-BOT Pairing API for Vercel
+const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
+const fs = require('fs');
+const path = require('path');
+const P = require('pino');
+
+module.exports = async (req, res) => {
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.status(200).end();
+
+    const number = req.query.number || req.body?.number;
+    
+    if (!number) {
+        return res.status(400).json({ error: "Number required. Example: ?number=27712345678" });
+    }
+
+    const cleanNumber = number.replace(/[^0-9]/g, "");
+    
+    if (cleanNumber.length < 10) {
+        return res.status(400).json({ error: "Invalid number" });
+    }
+
+    // Create temp session for this number
+    const sessionDir = path.join('/tmp', `session_${cleanNumber}_${Date.now()}`);
+    if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
+
+    try {
+        const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+
+        const sock = makeWASocket({
+            auth: state,
+            logger: P({ level: 'silent' }),
+            printQRInTerminal: false,
+            browser: ['GHOST-BOT', 'Chrome', '1.0']
+        });
+
+        sock.ev.on('creds.update', saveCreds);
+
+        // Wait for connection
+        if (!sock.authState.creds.registered) {
+            // Request pairing code after 3 sec
+            await new Promise(r => setTimeout(r, 3000));
+            const code = await sock.requestPairingCode(cleanNumber);
+            
+            // Clean code format XXXX-XXXX
+            const formattedCode = code.match(/.{1,4}/g)?.join("-") || code;
+
+            // Save session for later download
+            console.log(`Pair code for ${cleanNumber}: ${formattedCode}`);
+
+            // Close after 2 min if not linked
+            setTimeout(() => {
+                try { fs.rmSync(sessionDir, { recursive: true, force: true }); } catch {}
+            }, 120000);
+
+            return res.status(200).json({ 
+                code: formattedCode,
+                raw: code,
+                number: cleanNumber,
+                message: "Code generated. Link in WhatsApp > Linked Devices > Link with phone number"
+            });
+        } else {
+            return res.status(400).json({ error: "Already registered" });
+        }
+
+    } catch (e) {
+        console.error("Pair error:", e);
+        return res.status(500).json({ error: e.message, details: "Try again. Make sure Baileys installed" });
+    }
+}
