@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GHOST - BOT👻</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;background:#050a05;display:flex;flex-direction:column;align-items:center;justify-content:center;perspective:1000px;padding:20px;font-family:sans-serif}
+.wrap{transform-style:preserve-3d;animation:rotate360 6s linear infinite;margin-bottom:30px}
+h1{font-family:Arial Black,sans-serif;font-size:clamp(40px,8vw,80px);font-weight:900;color:#25D366;text-align:center;text-shadow:0 0 15px #25D366,0 0 30px #00ff66,0 0 60px #25D366,6px 0 #0a2e14}
+@keyframes rotate360{0%{transform:rotateY(0) rotateX(15deg)}100%{transform:rotateY(360deg) rotateX(15deg)}}
+.box{background:#111a11;border:2px solid #25D366;border-radius:20px;padding:25px;width:100%;max-width:420px;box-shadow:0 0 40px rgba(id="37,211,102",.4)}
+input,select{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:1px solid #25D366;background:#000;color:#fff;font-size:16px}
+button{width:100%;padding:15px;border:none;border-radius:12px;background:#25D366;color:#000;font-weight:900;font-size:18px;cursor:pointer;margin-top:10px;box-shadow:0 0 20px #25D366}
+button:active{transform:scale(.98)}
+#codeBox{display:none;margin-top:20px;text-align:center;background:#000;padding:20px;border-radius:15px;border:1px dashed #25D366}
+#pairCode{font-size:32px;letter-spacing:4px;color:#25D366;font-weight:900}
+.small{color:#aaa;font-size:13px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="wrap"><h1>GHOST BOT👻</h1></div>
+
+<div class="box">
+  <select id="country">
+    <option value="27">🇿🇦 +27 South Africa</option>
+    <option value="255">🇹🇿 +255 Tanzania</option>
+    <option value="254">🇰🇪 +254 Kenya</option>
+    <option value="91">🇮🇳 +91 India</option>
+    <option value="1">🇺🇸 +1 USA</option>
+  </select>
+  <input id="number" placeholder="Enter WhatsApp number without 0 eg 712345678">
+  <button onclick="getCode()">🔗 GET PAIR CODE</button>
+
+  <div id="codeBox">
+    <div id="fullNum" class="small"></div>
+    <div style="margin:15px 0;display:flex;justify-content:center;align-items:center;gap:10px">
+      <span id="masked" style="font-size:28px">××××-××××</span>
+      <span id="pairCode" style="display:none"></span>
+      <button onclick="toggleView()" id="eyeBtn" style="width:auto;padding:8px 12px;font-size:14px">👁 SHOW</button>
+    </div>
+    <button onclick="copyCode()" style="background:#fff">📋 COPY CODE</button>
+    <p class="small">1. Open WhatsApp > Link Device > Link with phone number<br>2. Paste this code</p>
+  </div>
+</div>
+
+<script>
+let realCode="",shown=false;
+async function getCode(){
+ let num=document.getElementById('number').value.replace(/[^0-9]/g,"");
+ let country=document.getElementById('country').value;
+ if(num.length<7){alert("⚠️ Enter correct number without 0");return;}
+ let full=country+num;
+ document.getElementById('codeBox').style.display='block';
+ document.getElementById('pairCode').innerText="⏳...";
+ document.getElementById('fullNum').innerText='Number: +'+full;
+ try{
+   let res=await fetch(`/api/pair?number=${full}`);
+   let data=await res.json();
+   if(data.code){
+     realCode=data.code;
+     document.getElementById('pairCode').innerText=realCode;
+     document.getElementById('masked').style.display='none';
+     document.getElementById('pairCode').style.display='block';
+     shown=true; document.getElementById('eyeBtn').innerText='🙈 HIDE';
+   } else alert(JSON.stringify(data));
+ }catch(e){alert("Backend not deployed. Add api/pair.js in Vercel")}
+}
+function toggleView(){
+ let m=document.getElementById('masked'),c=document.getElementById('pairCode'),b=document.getElementById('eyeBtn');
+ if(!shown){m.style.display='none';c.style.display='block';b.innerText='🙈 HIDE';shown=true}
+ else{m.style.display='block';c.style.display='none';b.innerText='👁 SHOW';shown=false}
+}
+function copyCode(){if(!realCode){alert("Click GET CODE first");return;}navigator.clipboard.writeText(realCode);alert('✅ COPIED: '+realCode)}
+</script>
+</body>
+</html>
