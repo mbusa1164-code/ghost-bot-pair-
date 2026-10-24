@@ -1,0 +1,45 @@
+{
+  "name": "ghost-bot-md",
+  "version": "4.0.0",
+  "description": "GHOST - BOT👻 - Fixed 403 + MovieBox + Netflix + Google + Pair Site",
+  "main": "app.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "pair": "node api/pair.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "ghost-bot",
+    "md",
+    "baileys",
+    "moviebox",
+    "netflix",
+    "youtube",
+    "pair",
+    "south-africa"
+  ],
+  "author": "MR MALESELA",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.8",
+    "pino": "^8.17.0",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7",
+    "axios": "^1.6.2",
+    "yt-search": "^2.10.4",
+    "qrcode-terminal": "^0.12.0",
+    "fs-extra": "^11.2.0",
+    "moment-timezone": "^0.5.43",
+    "file-type": "^18.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "form-data": "^4.0.0",
+    "human-readable": "^0.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
